@@ -215,6 +215,7 @@ const HATCH = 'repeating-linear-gradient(45deg, #bbb 0 1px, #fff 1px 4px)'; // s
 const rampSelect = document.getElementById('change-ramp');
 const rangeSelect = document.getElementById('change-range');
 for (const [key, { label }] of Object.entries(RAMPS)) rampSelect.add(new Option(label, key));
+rampSelect.value = 'Spectral'; // default colour ramp
 function changeColors() {
   const range = Number(rangeSelect.value);
   document.querySelector('.ramp').style.background = `${cssGradient(rampSelect.value, range, MIN_CHANGE)}, ${HATCH}`;
