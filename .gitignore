@@ -1,0 +1,10 @@
+.DS_Store
+# Source rasters (~1.8 GB) and intermediates; rebuild tiles with scripts/.
+# data/tiles/ IS committed: GitHub Pages serves it.
+data/*.tif
+data/*.aux.xml
+data/build/
+__pycache__/
+# Local-only: Claude Code notes and editor workspace.
+CLAUDE.md
+*.code-workspace

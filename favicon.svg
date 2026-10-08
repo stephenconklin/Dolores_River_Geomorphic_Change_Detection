@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- Folded map with a location pin. -->
+  <path d="M3 7l8-3 10 3 8-3v21l-8 3-10-3-8 3z" fill="#e8eef3" stroke="#2b4a63" stroke-width="2" stroke-linejoin="round"/>
+  <path d="M11 4v21M21 7v21" stroke="#2b4a63" stroke-width="1.5"/>
+  <path d="M16 23s-6-6.2-6-10.5a6 6 0 0 1 12 0C22 16.8 16 23 16 23z" fill="#c0392b" stroke="#fff" stroke-width="1.5"/>
+  <circle cx="16" cy="12.5" r="2.2" fill="#fff"/>
+</svg>

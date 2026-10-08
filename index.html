@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dolores River Flood Change</title>
+  <meta name="description" content="Drone-derived surface elevation change on the Dolores River between pre-flood (April 2023) and post-flood (February 2024) surveys of a large McPhee Dam flood release.">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.css">
+  <script src="https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.js"></script>
+  <link rel="stylesheet" href="lib/base.css">
+  <style>
+    .ramp { height: 12px; margin: 4px 0 2px; border: 1px solid #999; } /* gradient set by main.js */
+    .ramp-labels { display: flex; justify-content: space-between; font-size: 11px; }
+    .ramp-labels.meaning { color: #555; margin-bottom: 6px; }
+    .panel label { display: flex; align-items: center; gap: 6px; }
+    .panel input[type=range] { flex: 1; }
+    .panel .slider { flex: 1; display: flex; flex-direction: column; }
+    .panel .slider input { width: 100%; margin: 0; }
+    .panel .slider-scale { display: flex; justify-content: space-between; font-size: 10px; color: #777; line-height: 1.1; }
+    .panel output { min-width: 3.2em; text-align: right; font-size: 12px; font-variant-numeric: tabular-nums; }
+    .panel .hint { font-size: 11px; color: #555; margin: 4px 0 0; }
+    .panel .credit { font-size: 11px; color: #555; margin: 4px 0 0; }
+    .panel .ramp-options { margin-bottom: 4px; }
+    .panel .ramp-options select:first-child { flex: 1; }
+    .panel hr { border: 0; border-top: 1px solid #ddd; margin: 8px 0; }
+  </style>
+</head>
+<body>
+  <div id="map"></div>
+  <div id="panel" class="panel" hidden>
+    <!-- ===== Title and description: edit here ===== -->
+    <h1>Dolores River: Pre- to Post-Flood Elevation Change, April 2023 to February 2024</h1>
+    <p class="description">Change in surface elevation between a pre-flood and a post-flood drone survey
+      (February 2024 DSM minus April 2023 DSM), shown over the February 2024 drone imagery and terrain.</p>
+    <!-- ===== Credits and data details: edit here ===== -->
+    <div class="credit">
+      Map: <a href="https://github.com/stephenconklin" target="_blank" rel="noopener">Stephen Conklin</a>
+    </div>
+    <div class="credit">
+      Drone DSMs used in the analysis were collected for the DRAMS project by <a href="https://www.fortlewis.edu/academics/faculty-directory/harvey" target="_blank" rel="noopener">Jonathan Harvey, Ph.D.</a>, Fort Lewis College.<br>
+    </div>
+    <p class="hint"><b>Navigation</b>: drag to pan, scroll to zoom, right-drag (or ctrl-drag) to tilt and rotate.</p>
+    <hr>
+    <b>Basemap</b>
+    <label><select autocomplete="off" id="basemap"><option value="map">Map (OpenFreeMap)</option></select>
+      <input autocomplete="off" type="checkbox" id="labels" checked> labels</label>
+    <hr>
+    <b>Elevation Change, Post-Flood (Feb 2024) − Pre-Flood (Apr 2023) DSM</b>
+    <div class="ramp"></div>
+    <div class="ramp-labels"><span id="ramp-lo">≤ −1.5 m</span><span>±0.2 m not shown</span><span id="ramp-hi">≥ +1.5 m</span></div>
+    <div class="ramp-labels meaning"><span>◀ Lowering (erosion)</span><span>Raising (deposition) ▶</span></div>
+    <label class="ramp-options"><select autocomplete="off" id="change-ramp" aria-label="Colours" title="Colours"></select>
+      <select autocomplete="off" id="change-range" aria-label="Range" title="Range">
+        <option value="0.5">±0.5 m</option><option value="1">±1 m</option><option value="1.5" selected>±1.5 m</option><option value="2">±2 m</option>
+      </select></label>
+    <label><input autocomplete="off" type="checkbox" id="change-show" checked> show
+      <input autocomplete="off" type="range" id="change-opacity" min="0" max="1" step="0.05" value="0.85" data-format="percent"></label>
+    <hr>
+    <b>Drone Imagery Mosaic, Feb 2024 (post-flood)</b>
+    <label><input autocomplete="off" type="checkbox" id="ortho-show" checked> show
+      <input autocomplete="off" type="range" id="ortho-opacity" min="0" max="1" step="0.05" value="1" data-format="percent"></label>
+    <hr>
+    <b>Terrain</b>: Feb 2024 DSM
+    <label>exaggeration <input autocomplete="off" type="range" id="exaggeration" min="0" max="2" step="0.05" value="1" data-format="times"></label>
+    <hr>
+    <!-- ===== About section: edit here ===== -->
+    <details>
+      <summary>About this map</summary>
+      <div>
+        <p><b>Surveys</b>:</p>
+        <ul>
+          <li><b>April 2023, pre-flood</b>: right before a large flood was released out of McPhee Dam due to
+            high snow levels the winter before.</li>
+          <li><b>February 2024, post-flood</b> survey.</li>
+        </ul>
+        <p><b>Elevation change</b>:</p>
+        <ul>
+          <li>Post-flood February 2024 DSM minus pre-flood April 2023 DSM (a DEM of Difference).</li>
+          <li>Stretched diverging colour ramp centred on zero: warm colours for lowering (erosion), cool for
+            raising (deposition).</li>
+          <li>Default stretch ±1.5 m: about 90% of the change shown falls within it, while ±2 m would leave
+            most erosion (median 0.37 m) in pale colours. Change between 1.5 and 2 m (about 10% of shown
+            pixels, almost all raising) takes the end colours. Colours and stretch can be changed in the panel.</li>
+        </ul>
+        <p><b>Values not shown</b>:</p>
+        <ul>
+          <li>Changes smaller than ±20 cm are not shown because they fall within the uncertainty of the
+            measurements (the minimum level of detection).</li>
+          <li>Changes greater than ±2 m are also excluded because they are likely due to survey artifacts
+            rather than actual surface change.</li>
+        </ul>
+        <p><b>Data details</b>:</p>
+        <ul>
+          <li>Feb 2024 DSM: cell size 1.82 cm</li>
+          <li>Apr 2023 DSM: cell size 1.53 cm</li>
+          <li>Difference analysis: cell size 1.82 cm</li>
+          <li>Map projection: NAD83(2011) / UTM zone 12N (EPSG:6341); displayed in Web Mercator (EPSG:3857).</li>
+          <li>The web tiles display the 1.82 cm analysis raster averaged to about 6 cm.</li>
+        </ul>
+        <p><b>Imagery and terrain</b>: February 2024 drone orthomosaic and DSM. Outside the survey area,
+          terrain comes from AWS Terrain Tiles.</p>
+        <p><b>Scale bar</b>: measured at the centre of the view; in tilted 3D views the scale varies
+          across the map, so use "Zoom to site" (overhead view) for measurements.</p>
+        <p><b>Basemaps</b>: Esri World Imagery, OpenFreeMap.</p>
+      </div>
+    </details>
+  </div>
+  <script type="module" src="main.js"></script>
+</body>
+</html>

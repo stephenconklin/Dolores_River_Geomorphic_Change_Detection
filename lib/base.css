@@ -1,0 +1,30 @@
+html, body { margin: 0; height: 100%; font-family: system-ui, sans-serif; }
+#map { position: absolute; inset: 0; }
+.panel {
+  position: absolute; top: 10px; left: 10px; z-index: 1;
+  background: rgba(255,255,255,.92); padding: 8px 12px; border-radius: 6px;
+  font-size: 13px; box-shadow: 0 1px 4px rgba(0,0,0,.25); max-width: 280px;
+}
+.panel a { color: inherit; }
+
+/* Panels added with ElementControl sit in MapLibre's corner stack instead of absolute positioning. */
+.maplibregl-ctrl.panel { position: static; }
+.panel { box-sizing: border-box; width: 300px; max-width: calc(100vw - 20px); line-height: 1.4;
+  max-height: calc(100vh - 20px); overflow-y: auto; }
+
+/* Title, description, and collapsible About inside a panel. */
+.panel h1 { font-size: 16px; margin: 2px 0 4px; line-height: 1.25; }
+.panel .description { margin: 0; color: #444; }
+.panel details summary { cursor: pointer; font-weight: 600; }
+.panel details summary:focus:not(:focus-visible) { outline: none; } /* keep the ring for keyboard users only */
+.panel details > div { font-size: 12px; margin-top: 4px; }
+.panel details p, .panel details ul { margin: 4px 0; }
+.panel details ul { padding-left: 18px; }
+.panel .back { display: block; margin-top: 8px; font-size: 12px; }
+
+/* Scale bar control (lib/ui.js). */
+.scale-bar { background: rgba(255,255,255,.85); padding: 2px 4px 0; border-radius: 4px; line-height: 0; }
+
+/* Labelled ButtonControl (lib/ui.js), e.g. "Study area". */
+.maplibregl-ctrl-group button.ctrl-labelled { width: auto; display: flex; align-items: center; gap: 5px;
+  padding: 0 8px; font: 600 12px system-ui, sans-serif; color: #333; white-space: nowrap; }
