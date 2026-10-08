@@ -10,7 +10,21 @@ html, body { margin: 0; height: 100%; font-family: system-ui, sans-serif; }
 /* Panels added with ElementControl sit in MapLibre's corner stack instead of absolute positioning. */
 .maplibregl-ctrl.panel { position: static; }
 .panel { box-sizing: border-box; width: 300px; max-width: calc(100vw - 20px); line-height: 1.4;
-  max-height: calc(100vh - 20px); overflow-y: auto; }
+  max-height: calc(100vh - 20px); max-height: calc(100dvh - 20px); overflow-y: auto; }
+
+/* Title row with a collapse toggle; the chevron points down when collapsed. */
+.panel-head { display: flex; align-items: flex-start; gap: 6px; }
+.panel-head h1 { flex: 1; }
+.panel-head button { flex: none; width: 32px; height: 32px; margin: -4px -6px 0 0; padding: 0;
+  display: grid; place-items: center; border: 0; border-radius: 4px; background: none; cursor: pointer; }
+.panel-head button:hover { background: rgba(0,0,0,.06); }
+.panel.collapsed .panel-head svg { transform: rotate(180deg); }
+
+/* Phones: leave room for the top-right controls, which show icons only. */
+@media (max-width: 640px) {
+  .panel { max-width: calc(100vw - 70px); }
+  .maplibregl-ctrl-group button.ctrl-labelled span { display: none; }
+}
 
 /* Title, description, and collapsible About inside a panel. */
 .panel h1 { font-size: 16px; margin: 2px 0 4px; line-height: 1.25; }

@@ -100,7 +100,13 @@ const map = new maplibregl.Map({
   maxPitch: 85,
   maxZoom: 23,
   hash: true,
+  attributionControl: false, // added below, collapsed
 });
+// Attribution as an "i" button on every screen size. MapLibre's compact mode starts open and closes on the
+// first drag; marking it compact ourselves skips that, so it starts closed. Added before the scale bar so it
+// stays in the corner.
+map.addControl(new maplibregl.AttributionControl({ compact: true }), 'bottom-right');
+map.getContainer().querySelector('.maplibregl-ctrl-attrib').classList.add('maplibregl-compact');
 map.addControl(new maplibregl.NavigationControl({ visualizePitch: true }), 'top-right');
 // Title, layer controls and About are plain HTML in index.html (#panel).
 map.addControl(new ElementControl('panel'), 'top-left');
@@ -198,6 +204,17 @@ map.on('load', () => {
 });
 
 // --- panel --------------------------------------------------------------------------------------
+
+// Collapse to title and legend; collapsed by default on phone-sized screens so the map stays usable.
+const panel = document.getElementById('panel');
+const panelToggle = document.getElementById('panel-toggle');
+function setPanelCollapsed(collapsed) {
+  panel.classList.toggle('collapsed', collapsed);
+  panelToggle.setAttribute('aria-expanded', String(!collapsed));
+  panelToggle.title = collapsed ? 'Show layers and details' : 'Hide layers and details';
+}
+setPanelCollapsed(matchMedia('(max-width: 640px), (max-height: 500px)').matches);
+panelToggle.addEventListener('click', () => setPanelCollapsed(!panel.classList.contains('collapsed')));
 
 for (const [id, opacity] of [['ortho', 'raster-opacity'], ['change', 'color-relief-opacity']]) {
   document.getElementById(`${id}-show`).addEventListener('change', (e) => {

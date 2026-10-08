@@ -24,13 +24,23 @@
     .panel .ramp-options { margin-bottom: 4px; }
     .panel .ramp-options select:first-child { flex: 1; }
     .panel hr { border: 0; border-top: 1px solid #ddd; margin: 8px 0; }
+    /* Collapsed panel (toggle in main.js; the default on phone-sized screens) keeps only title and legend. */
+    .panel.collapsed > :not(.panel-head, .ramp, .ramp-labels) { display: none; }
+    .nav-touch { display: none; }
+    @media (pointer: coarse) { .nav-mouse { display: none; } .nav-touch { display: inline; } }
   </style>
 </head>
 <body>
   <div id="map"></div>
   <div id="panel" class="panel" hidden>
     <!-- ===== Title and description: edit here ===== -->
-    <h1>Dolores River: Pre- to Post-Flood Elevation Change, April 2023 to February 2024</h1>
+    <div class="panel-head">
+      <h1>Dolores River: Pre- to Post-Flood Elevation Change, April 2023 to February 2024</h1>
+      <button type="button" id="panel-toggle" aria-label="Layers and details" aria-controls="panel">
+        <svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="#333" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 10 7.5l5 5"/></svg>
+      </button>
+    </div>
     <p class="description">Change in surface elevation between a pre-flood and a post-flood drone survey
       (February 2024 DSM minus April 2023 DSM), shown over the February 2024 drone imagery and terrain.</p>
     <!-- ===== Credits and data details: edit here ===== -->
@@ -40,7 +50,9 @@
     <div class="credit">
       Drone DSMs used in the analysis were collected for the <a href="https://www.fourcornerswater.org/dolores-river" target="_blank" rel="noopener">DRAMS</a> project by <a href="https://www.fortlewis.edu/academics/faculty-directory/harvey" target="_blank" rel="noopener">Jonathan Harvey, Ph.D.</a>, Fort Lewis College.<br>
     </div>
-    <p class="hint"><b>Navigation</b>: drag to pan, scroll to zoom, right-drag (or ctrl-drag) to tilt and rotate.</p>
+    <p class="hint"><b>Navigation</b>:
+      <span class="nav-mouse">drag to pan, scroll to zoom, right-drag (or ctrl-drag) to tilt and rotate.</span>
+      <span class="nav-touch">drag to pan, pinch to zoom, two-finger drag up or down to tilt, two-finger twist to rotate.</span></p>
     <hr>
     <b>Basemap</b>
     <label><select autocomplete="off" id="basemap"><option value="map">Map (OpenFreeMap)</option></select>
@@ -61,7 +73,7 @@
     <label><input autocomplete="off" type="checkbox" id="ortho-show" checked> show
       <input autocomplete="off" type="range" id="ortho-opacity" min="0" max="1" step="0.05" value="1" data-format="percent"></label>
     <hr>
-    <b>Terrain</b>: Feb 2024 DSM
+    <div><b>Terrain</b>: Feb 2024 DSM</div>
     <label>exaggeration <input autocomplete="off" type="range" id="exaggeration" min="0" max="2" step="0.05" value="1" data-format="times"></label>
     <hr>
     <!-- ===== About section: edit here ===== -->
