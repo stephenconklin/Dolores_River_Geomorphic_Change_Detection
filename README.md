@@ -8,7 +8,7 @@ pre-flood and a post-flood survey, built with [MapLibre GL JS](https://maplibre.
 - **Surveys**: April 2023, pre-flood, right before a large flood was released out of McPhee Dam due to
   high snow levels the winter before; February 2024, post-flood
 - **Elevation change**: post-flood February 2024 DSM minus pre-flood April 2023 DSM, with selectable colour ramp and stretch.
-  Changes within ±0.2 m (minimum level of detection) and beyond ±2 m are not shown. The default stretch
+  Changes within ±0.2 m (minimum level of detection, adjustable in the panel) and beyond ±2 m are not shown. The default stretch
   is ±1.5 m: about 90% of the shown change falls within it, and it gives erosion (median 0.37 m) more
   contrast than ±2 m; change between 1.5 and 2 m (about 10%, almost all raising) takes the end colours
 - **Data**: drone DSMs collected for the DRAMS project; cell sizes Feb 2024 1.82 cm, Apr 2023 1.53 cm,

@@ -23,6 +23,8 @@
     .panel .credit { font-size: 11px; color: #555; margin: 4px 0 0; }
     .panel .ramp-options { margin-bottom: 4px; }
     .panel .ramp-options select:first-child { flex: 1; }
+    .panel .min-change { margin: 2px 0 8px; }
+    .panel input[type=number] { width: 3.5em; }
     .panel hr { border: 0; border-top: 1px solid #ddd; margin: 8px 0; }
     /* Collapsed panel (toggle in main.js; the default on phone-sized screens) keeps only title and legend. */
     .panel.collapsed > :not(.panel-head, .ramp, .ramp-labels) { display: none; }
@@ -51,30 +53,32 @@
       Drone DSMs used in the analysis were collected for the <a href="https://www.fourcornerswater.org/dolores-river" target="_blank" rel="noopener">DRAMS</a> project by <a href="https://www.fortlewis.edu/academics/faculty-directory/harvey" target="_blank" rel="noopener">Jonathan Harvey, Ph.D.</a>, Fort Lewis College.<br>
     </div>
     <p class="hint"><b>Navigation</b>:
-      <span class="nav-mouse">drag to pan, scroll to zoom, right-drag (or ctrl-drag) to tilt and rotate.</span>
-      <span class="nav-touch">drag to pan, pinch to zoom, two-finger drag up or down to tilt, two-finger twist to rotate.</span></p>
+      <span class="nav-mouse">Drag to pan, scroll to zoom, right-drag (or ctrl-drag) to tilt and rotate.</span>
+      <span class="nav-touch">Drag to pan, pinch to zoom, two-finger drag up or down to tilt, two-finger twist to rotate.</span></p>
     <hr>
     <b>Basemap</b>
     <label><select autocomplete="off" id="basemap"><option value="map">Map (OpenFreeMap)</option></select>
-      <input autocomplete="off" type="checkbox" id="labels" checked> labels</label>
+      <input autocomplete="off" type="checkbox" id="labels" checked> Labels</label>
     <hr>
     <b>Elevation Change, Post-Flood (Feb 2024) − Pre-Flood (Apr 2023) DSM</b>
     <div class="ramp"></div>
-    <div class="ramp-labels"><span id="ramp-lo">≤ −1.5 m</span><span>±0.2 m not shown</span><span id="ramp-hi">≥ +1.5 m</span></div>
+    <div class="ramp-labels"><span id="ramp-lo">≤ −1.5 m</span><span id="ramp-hide">±0.2 m not shown</span><span id="ramp-hi">≥ +1.5 m</span></div>
     <div class="ramp-labels meaning"><span>◀ Lowering (erosion)</span><span>Raising (deposition) ▶</span></div>
     <label class="ramp-options"><select autocomplete="off" id="change-ramp" aria-label="Colours" title="Colours"></select>
       <select autocomplete="off" id="change-range" aria-label="Range" title="Range">
         <option value="0.5">±0.5 m</option><option value="1">±1 m</option><option value="1.5" selected>±1.5 m</option><option value="2">±2 m</option>
       </select></label>
-    <label><input autocomplete="off" type="checkbox" id="change-show" checked> show
+    <label class="min-change" title="Minimum level of detection: smaller changes are within measurement uncertainty">Hide change smaller than ±
+      <input autocomplete="off" type="number" id="change-min" min="0" max="100" step="5" value="20"> cm</label>
+    <label><input autocomplete="off" type="checkbox" id="change-show" checked> Show
       <input autocomplete="off" type="range" id="change-opacity" min="0" max="1" step="0.05" value="0.85" data-format="percent"></label>
     <hr>
     <b>Drone Imagery Mosaic, Feb 2024 (post-flood)</b>
-    <label><input autocomplete="off" type="checkbox" id="ortho-show" checked> show
+    <label><input autocomplete="off" type="checkbox" id="ortho-show" checked> Show
       <input autocomplete="off" type="range" id="ortho-opacity" min="0" max="1" step="0.05" value="0.8" data-format="percent"></label>
     <hr>
     <div><b>Terrain</b>: Feb 2024 DSM</div>
-    <label>exaggeration <input autocomplete="off" type="range" id="exaggeration" min="0" max="2" step="0.05" value="1" data-format="times"></label>
+    <label>Exaggeration <input autocomplete="off" type="range" id="exaggeration" min="0" max="2" step="0.05" value="1" data-format="times"></label>
     <hr>
     <!-- ===== About section: edit here ===== -->
     <details>
@@ -98,7 +102,7 @@
         <p><b>Values not shown</b>:</p>
         <ul>
           <li>Changes smaller than ±20 cm are not shown because they fall within the uncertainty of the
-            measurements (the minimum level of detection).</li>
+            measurements (the minimum level of detection). This threshold can be changed in the panel.</li>
           <li>Changes greater than ±2 m are also excluded because they are likely due to survey artifacts
             rather than actual surface change.</li>
         </ul>

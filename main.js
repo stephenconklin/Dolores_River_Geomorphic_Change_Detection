@@ -226,24 +226,30 @@ for (const [id, opacity] of [['ortho', 'raster-opacity'], ['change', 'color-reli
 }
 
 // Change colour ramp and range (± metres); the legend is drawn from the same ramp.
-// |change| below MIN_CHANGE is hidden as within measurement uncertainty (text in index.html says ±20 cm).
-const MIN_CHANGE = 0.2;
+// |change| below the minimum (the cm box, default 20 in index.html) is hidden as within measurement
+// uncertainty; the About text in index.html says ±20 cm.
 const HATCH = 'repeating-linear-gradient(45deg, #bbb 0 1px, #fff 1px 4px)'; // shows through the hidden band
 const rampSelect = document.getElementById('change-ramp');
 const rangeSelect = document.getElementById('change-range');
+const minInput = document.getElementById('change-min');
 for (const [key, { label }] of Object.entries(RAMPS)) rampSelect.add(new Option(label, key));
 rampSelect.value = 'Spectral'; // default colour ramp
 function changeColors() {
   const range = Number(rangeSelect.value);
-  document.querySelector('.ramp').style.background = `${cssGradient(rampSelect.value, range, MIN_CHANGE)}, ${HATCH}`;
+  // Keep the hidden band inside the stretch (ramps.js interpolates the colour at ±hide). Below 2 cm its
+  // stops would overlap, and the source already drops |change| < 1 cm, so treat that as no threshold.
+  const cm = Number(minInput.value) || 0;
+  const hide = cm < 2 ? 0 : Math.min(cm / 100, range - 0.05);
+  document.querySelector('.ramp').style.background = `${cssGradient(rampSelect.value, range, hide)}, ${HATCH}`;
+  document.getElementById('ramp-hide').textContent = hide ? `±${+hide.toFixed(2)} m not shown` : '';
   // Data runs to ±2 m, so a narrower stretch puts larger change in the end colours: say so.
   const [lo, hi] = range < 2 ? ['≤ ', '≥ '] : ['', ''];
   document.getElementById('ramp-lo').textContent = `${lo}−${range} m`;
   document.getElementById('ramp-hi').textContent = `${hi}+${range} m`;
-  return colorExpression(rampSelect.value, range, MIN_CHANGE, change);
+  return colorExpression(rampSelect.value, range, hide, change);
 }
-for (const el of [rampSelect, rangeSelect]) {
-  el.addEventListener('change', () => {
+for (const el of [rampSelect, rangeSelect, minInput]) {
+  el.addEventListener(el === minInput ? 'input' : 'change', () => {
     const colors = changeColors();
     if (map.getLayer('change')) map.setPaintProperty('change', 'color-relief-color', colors);
   });
