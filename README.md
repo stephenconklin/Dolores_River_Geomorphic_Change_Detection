@@ -1,5 +1,7 @@
 # Dolores River Geomorphic Change Detection
 
+**Live map: https://stephenconklin.github.io/Dolores_River_Geomorphic_Change_Detection/**
+
 Interactive 3D web map of drone-derived surface change on the Dolores River, SW Colorado, between a
 pre-flood and a post-flood survey, built with [MapLibre GL JS](https://maplibre.org/maplibre-gl-js/docs/API/).
 
