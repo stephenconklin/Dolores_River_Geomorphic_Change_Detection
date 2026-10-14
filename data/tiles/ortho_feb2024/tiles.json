@@ -1,0 +1,10 @@
+{
+    "tilejson": "3.0.0",
+    "name": "Feb 2024 Drone Ortho",
+    "tiles": ["https://conklingeospatial.com/Dolores_River_Geomorphic_Change_Detection/data/tiles/ortho_feb2024/{z}/{x}/{y}.webp"],
+    "minzoom": 14,
+    "maxzoom": 22,
+    "bounds": [-108.8780, 38.0294, -108.8740, 38.0322],
+    "center": [-108.8759, 38.0308, 17],
+    "attribution": "Drone imagery: DRAMS project, J. Harvey, Fort Lewis College"
+}
