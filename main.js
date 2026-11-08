@@ -90,15 +90,95 @@ maplibregl.addProtocol('sitedem', async (params, abortController) => {
 
 // --- map ----------------------------------------------------------------------------------------
 
-// Starting view (3D, looking across the site); the "Study area" button flies back to it.
-const HOME = { center: [-108.87529, 38.03136], zoom: 19.2, pitch: 67, bearing: -134.2 };
+// --- keeping visitors near the site and above the ground -----------------------------------------
+
+const [west, south, east, north] = site.bounds;
+const SITE_CENTER = new maplibregl.LngLat((west + east) / 2, (south + north) / 2);
+const ROAM_RADIUS = 2000; // metres from the site centre that the view centre may move
+const MIN_ZOOM = 13;
+const MAX_ZOOM = 22; // the drone imagery stops at z22
+const MAX_PITCH = 75; // steeper views are mostly sky and easily end up nose-down in the terrain
+const CLEARANCE = 8; // metres the camera keeps above the ground (MapLibre alone allows 0)
+
+// Starting view, as a camera position relative to a ground point, so it's the same on every screen
+// (a fixed zoom puts the camera closer on short screens). Ground heights are from the DSM tiles, metres.
+// The "Study area" button and the Home key fly back to it.
+const HOME = { target: [-108.87529, 38.03136], ground: 1661, bearing: -134.2, pitch: 67, distance: 140 };
+const SITE_GROUND = 1666; // DSM at the site centre, for "Zoom to site"
+
+// Replaces MapLibre's default constraint (so it clamps zoom too): pulls the view centre back inside
+// ROAM_RADIUS. A circle rather than maxBounds, which jams pitch and zoom-out near its edges in 3D.
+function keepNearSite(lngLat, zoom) {
+  const d = SITE_CENTER.distanceTo(lngLat);
+  const f = d > ROAM_RADIUS ? ROAM_RADIUS / d : 1;
+  return {
+    center: new maplibregl.LngLat(SITE_CENTER.lng + (lngLat.lng - SITE_CENTER.lng) * f,
+      SITE_CENTER.lat + (lngLat.lat - SITE_CENTER.lat) * f),
+    zoom: Math.min(Math.max(+zoom, MIN_ZOOM), MAX_ZOOM),
+  };
+}
+
+// Runs on every camera change, after MapLibre's own "lift the camera out of the terrain" step: if the
+// camera is within CLEARANCE of the ground, raise it there while it keeps looking at the same point.
+// That built-in step looks the ground up at the fractional zoom, which finds no tile below the DEM's
+// maxzoom and reads 0 m, so it rarely acts; the integer tileZoom works.
+// MapLibre calls this as a map method (`this`), possibly from inside the Map constructor.
+function keepAboveGround(tr) {
+  if (!this.terrain) return {};
+  const camera = tr.getCameraLngLat();
+  const minAltitude = this.terrain.getElevationForLngLatZoom(camera, tr.tileZoom) + CLEARANCE;
+  if (tr.getCameraAltitude() >= minAltitude) return {};
+  const { pitch, zoom } = this.calculateCameraOptionsFromTo(camera, minAltitude, tr.center, tr.elevation);
+  return { pitch, zoom };
+}
+
+const exaggeration = () => map.getTerrain()?.exaggeration ?? 1;
+
+function homeCamera() {
+  const { target, ground, bearing, pitch, distance } = HOME;
+  const b = bearing * Math.PI / 180;
+  const p = pitch * Math.PI / 180;
+  const across = distance * Math.sin(p); // horizontal distance from the camera to the target
+  const metresPerDegree = 111320;
+  const camera = new maplibregl.LngLat(
+    target[0] - across * Math.sin(b) / (metresPerDegree * Math.cos(target[1] * Math.PI / 180)),
+    target[1] - across * Math.cos(b) / metresPerDegree);
+  const groundHere = ground * exaggeration();
+  return map.calculateCameraOptionsFromTo(camera, groundHere + distance * Math.cos(p),
+    maplibregl.LngLat.convert(target), groundHere);
+}
+
+function siteCamera() { // overhead (nadir) view of the whole site
+  const { center, zoom } = map.cameraForBounds(site.bounds, { padding: 40, bearing: 0, pitch: 0 });
+  return { center, zoom, bearing: 0, pitch: 0, elevation: SITE_GROUND * exaggeration() };
+}
+
+// flyTo guesses the ground height at the destination from whichever terrain tiles are loaded when it starts
+// (coarse, or 0 m when flying in from afar), so it can end at a wrong height and viewpoint. jumpTo honours
+// `elevation`, so when the flight finishes uninterrupted, settle on the exact view.
+const FLIGHT_MS = 2000;
+function flyToView(view) {
+  const start = performance.now();
+  // Registered first: with reduced motion flyTo is an instant (exact) jumpTo that fires moveend at once.
+  map.once('moveend', () => {
+    if (performance.now() - start >= FLIGHT_MS) map.jumpTo(view);
+  });
+  map.flyTo({ ...view, duration: FLIGHT_MS });
+}
+const goHome = () => flyToView(homeCamera());
+
+const startedFromHash = location.hash.length > 1; // a shared #zoom/lat/lng/bearing/pitch view
 
 const map = new maplibregl.Map({
   container: 'map',
   style: STYLES.liberty,
-  ...HOME,
-  maxPitch: 85,
-  maxZoom: 23,
+  center: HOME.target, zoom: 18, pitch: HOME.pitch, bearing: HOME.bearing, // replaced by homeCamera() on load
+  minZoom: MIN_ZOOM,
+  maxZoom: MAX_ZOOM,
+  maxPitch: MAX_PITCH,
+  transformConstrain: keepNearSite,
+  transformCameraUpdate: keepAboveGround,
+  locale: { 'NavigationControl.ResetBearing': 'Drag to rotate, click to reset north and tilt' },
   hash: true,
   attributionControl: false, // added below, collapsed
 });
@@ -191,16 +271,51 @@ map.on('load', () => {
   map.addControl(new ButtonControl({
     title: 'Zoom to site',
     icon: FIT_ICON,
-    onClick: () => map.fitBounds(site.bounds, { pitch: 0, bearing: 0, padding: 40 }), // overhead (nadir) view
+    onClick: () => flyToView(siteCamera()),
   }), 'top-right');
   map.addControl(new ButtonControl({
-    title: 'Back to the study area (starting view)',
+    title: 'Back to the study area (starting view; Home key)',
     icon: HOME_ICON,
     label: 'Study area',
-    onClick: () => map.flyTo(HOME),
+    onClick: goHome,
   }), 'top-right');
   thinLineLabels();
   applyBasemap();
+  if (!startedFromHash) map.jumpTo(homeCamera());
+  updateLostButton();
+});
+
+// --- getting back -------------------------------------------------------------------------------
+
+// "Back to the study area" appears in the middle of the map whenever none of the site is in view, or the
+// view is zoomed out past where the change layer is drawn.
+const lostButton = document.getElementById('lost');
+lostButton.addEventListener('click', goHome);
+const SITE_POINTS = [0, 0.5, 1].flatMap((fy) => [0, 0.5, 1].map((fx) =>
+  [west + (east - west) * fx, south + (north - south) * fy]));
+const onSite = ({ lng, lat }) => lng >= west && lng <= east && lat >= south && lat <= north;
+function siteInView() {
+  const { clientWidth: w, clientHeight: h } = map.getContainer();
+  // Zoomed out: is a corner, edge midpoint or the centre of the site on screen?
+  if (SITE_POINTS.some((p) => {
+    const { x, y } = map.project(p);
+    return x >= 0 && x <= w && y >= 0 && y <= h;
+  })) return true;
+  // Zoomed in: does any of a 5x5 grid of screen points land on the site?
+  for (let i = 0; i < 5; i++) {
+    for (let j = 0; j < 5; j++) {
+      if (onSite(map.unproject([(i + 0.5) * w / 5, (j + 0.5) * h / 5]))) return true;
+    }
+  }
+  return false;
+}
+function updateLostButton() {
+  lostButton.hidden = map.getZoom() >= change.minzoom && siteInView();
+}
+map.on('move', updateLostButton);
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Home' && !e.target.closest?.('input, select, textarea')) goHome();
 });
 
 // --- panel --------------------------------------------------------------------------------------

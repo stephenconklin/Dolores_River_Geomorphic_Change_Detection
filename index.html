@@ -42,10 +42,17 @@
     .panel.collapsed > :not(.panel-head, .ramp, .ramp-labels) { display: none; }
     .nav-touch { display: none; }
     @media (pointer: coarse) { .nav-mouse { display: none; } .nav-touch { display: inline; } }
+    /* "Back to the study area": shown by main.js when none of the site is in view. */
+    .lost { position: absolute; left: 50%; bottom: 40px; transform: translateX(-50%); z-index: 3;
+      padding: 8px 14px; border: 0; border-radius: 18px; background: #fff; color: #222; cursor: pointer;
+      font: 600 13px system-ui, sans-serif; box-shadow: 0 1px 6px rgba(0,0,0,.35); white-space: nowrap; }
+    .lost:hover { background: #f2f2f2; }
+    .lost[hidden] { display: none; }
   </style>
 </head>
 <body>
   <div id="map"></div>
+  <button type="button" id="lost" class="lost" hidden>↺ Back to the study area</button>
   <div id="panel" class="panel" hidden>
     <!-- ===== Title and description: edit here ===== -->
     <div class="panel-head">
@@ -66,7 +73,7 @@
       Drone DSMs used in the analysis were collected for the <a href="https://www.fourcornerswater.org/dolores-river" target="_blank" rel="noopener">DRAMS</a> project by <a href="https://www.fortlewis.edu/academics/faculty-directory/harvey" target="_blank" rel="noopener">Jonathan Harvey, Ph.D.</a>, Fort Lewis College.<br>
     </div>
     <p class="hint"><b>Navigation</b>:
-      <span class="nav-mouse">Drag to pan, scroll to zoom, right-drag (or ctrl-drag) to tilt and rotate.</span>
+      <span class="nav-mouse">Drag to pan, scroll to zoom, right-drag (or ctrl-drag) to tilt and rotate. Press Home to return to the starting view.</span>
       <span class="nav-touch">Drag to pan, pinch to zoom, two-finger drag up or down to tilt, two-finger twist to rotate.</span></p>
     <hr>
     <b>Basemap</b>
